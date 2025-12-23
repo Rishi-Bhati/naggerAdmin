@@ -29,33 +29,52 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         .eq('completed', false)
         .gt('deadline', now)
 
-    // Total Registered Users (from users table)
-    const { count: totalUsers } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
+    // FETCH ALL TASK HISTORY TO DERIVE USER STATS
+    // Since we can't trust the 'users' table or sync it (missing admin key),
+    // we derive stats from the 'tasks' table which is the source of truth for activity.
+    const { data: allTasks } = await supabase
+        .from('tasks')
+        .select('user_id, created_at')
 
-    // Active Users (last_active_at in last 7 days)
+    const tasks = allTasks || []
+
+    const uniqueUserIds = new Set(tasks.map(t => t.user_id))
+    const totalUsers = uniqueUserIds.size // True "Total Users" count
+
+    // Active Users (active in last 7 days)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    const isoSevenDaysAgo = sevenDaysAgo.toISOString()
 
-    const { count: activeUsers } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .gte('last_active_at', isoSevenDaysAgo)
+    // Users who have a task created in the last 7 days
+    const activeUserCount = new Set(
+        tasks
+            .filter(t => new Date(t.created_at) >= sevenDaysAgo)
+            .map(t => t.user_id)
+    ).size
 
-    // New Users (created_at in last 7 days)
-    const { count: newUsersLast7Days } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', isoSevenDaysAgo)
+    // New Users (First seen in last 7 days)
+    // Find the earliest task for each user
+    const firstSeen = new Map<number, Date>()
+    tasks.forEach(t => {
+        const date = new Date(t.created_at)
+        if (!firstSeen.has(t.user_id) || date < firstSeen.get(t.user_id)!) {
+            firstSeen.set(t.user_id, date)
+        }
+    })
+
+    let newUsersLast7Days = 0
+    firstSeen.forEach(date => {
+        if (date >= sevenDaysAgo) {
+            newUsersLast7Days++
+        }
+    })
 
     return {
-        totalUsers: totalUsers || 0,
-        activeUsers: activeUsers || 0,
+        totalUsers: totalUsers,
+        activeUsers: activeUserCount,
         totalTasks: totalTasks || 0,
         activeTasks: activeTasks || 0,
-        newUsersLast7Days: newUsersLast7Days || 0
+        newUsersLast7Days: newUsersLast7Days
     }
 }
 
