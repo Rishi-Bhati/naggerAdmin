@@ -15,9 +15,9 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/dashboard/broadcast', label: 'Broadcast', icon: Send },
-    { href: '/dashboard/errors', label: 'Error Logs', icon: AlertTriangle },
+    { href: '/admin', label: 'Overview', icon: LayoutDashboard },
+    { href: '/admin/broadcast', label: 'Broadcast', icon: Send },
+    { href: '/admin/errors', label: 'Error Logs', icon: AlertTriangle },
 ]
 
 export default function DashboardLayout({

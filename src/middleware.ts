@@ -1,18 +1,12 @@
-
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-    console.log('Middleware processing:', request.nextUrl.pathname)
+    const session = request.cookies.get('admin_session')
 
-    // Check if the route is /dashboard
-    if (request.nextUrl.pathname.startsWith('/dashboard')) {
-        const authCookie = request.cookies.get('admin_session')
-        console.log('Session cookie found:', !!authCookie)
-
-        // If no session cookie, redirect to login
-        if (!authCookie) {
-            console.log('No session, redirecting to login')
+    // Protect /admin routes
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        if (!session || session.value !== 'true') {
             return NextResponse.redirect(new URL('/login', request.url))
         }
     }
@@ -21,5 +15,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: '/dashboard/:path*',
+    matcher: ['/admin/:path*']
 }

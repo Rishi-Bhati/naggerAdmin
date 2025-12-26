@@ -14,6 +14,11 @@ export interface ChartData {
     count: number
 }
 
+export interface ProcessingTimeData {
+    timestamp: string
+    duration: number
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
     const now = new Date().toISOString()
 
@@ -101,5 +106,36 @@ export async function getTaskCreationHistory(): Promise<ChartData[]> {
     return Object.entries(grouped).map(([date, count]) => ({
         date,
         count
+    }))
+}
+
+export async function getAvgProcessingTime(): Promise<number> {
+    const { data, error } = await supabase
+        .from('bot_metrics')
+        .select('processing_time_ms')
+        .order('timestamp', { ascending: false })
+        .limit(1000)
+
+    if (error || !data || data.length === 0) {
+        return 0
+    }
+
+    const total = data.reduce((acc, curr) => acc + curr.processing_time_ms, 0)
+    return Math.round(total / data.length)
+}
+
+export async function getResponseTimeHistory(): Promise<ProcessingTimeData[]> {
+    const { data, error } = await supabase
+        .from('bot_metrics')
+        .select('timestamp, processing_time_ms')
+        .order('timestamp', { ascending: true }) // Oldest first, so newest appears on the right
+        .limit(50) // Last 50 commands for the chart
+
+    if (error || !data) return []
+
+    // No need to reverse - ascending order means oldest on left, newest on right
+    return data.map(d => ({
+        timestamp: new Date(d.timestamp).toLocaleTimeString(),
+        duration: d.processing_time_ms
     }))
 }

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     if (password === adminPassword) {
         // Set a session cookie
         const cookieStore = await cookies()
-        cookieStore.set('admin_session', 'authenticated', {
+        cookieStore.set('admin_session', 'true', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 60 * 60 * 24, // 1 day
