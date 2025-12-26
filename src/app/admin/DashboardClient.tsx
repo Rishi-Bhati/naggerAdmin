@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import GridLayout from 'react-grid-layout/legacy'
+import GridLayout, { type Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import {
     BarChart,
@@ -89,7 +89,7 @@ export default function DashboardClient({
         return { min, max, avg, peakTime: peakEntry?.timestamp || '' }
     }, [timingHistory])
 
-    const defaultLayout = [
+    const defaultLayout: Layout[] = [
         { i: 'stats', x: 0, y: 0, w: 12, h: 2, static: true },
         { i: 'taskChart', x: 0, y: 2, w: 8, h: 5, minW: 4, minH: 3 },
         { i: 'responseChart', x: 8, y: 2, w: 4, h: 5, minW: 3, minH: 3 },
@@ -97,7 +97,7 @@ export default function DashboardClient({
         { i: 'statusOverride', x: 0, y: 7, w: 4, h: 4, minW: 3, minH: 3 },
     ]
 
-    const [layout, setLayout] = useState(defaultLayout)
+    const [layout, setLayout] = useState<Layout[]>(defaultLayout)
 
     const container = {
         hidden: { opacity: 0 },
@@ -124,7 +124,7 @@ export default function DashboardClient({
                     cols={12}
                     rowHeight={60}
                     width={containerWidth}
-                    onLayoutChange={(newLayout) => setLayout(newLayout)}
+                    onLayoutChange={(newLayout) => setLayout([...newLayout])}
                     draggableHandle=".drag-handle"
                     isResizable={true}
                     resizeHandles={['se']}
