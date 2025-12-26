@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import GridLayout from 'react-grid-layout'
+import GridLayout from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import {
     BarChart,
